@@ -25,37 +25,110 @@ Prerequisites
 
 Installation
 ----------------------------------------------
+ 
 
+# Install and Configure SSH on IPFire 
 
-Step 1: Prepare the Server
+apt-get update 
 
-• Ensure SSH is enabled and accessible on your server.
+apt-get install openssh-server 
 
-• Create a dedicated user for the reverse shell connection to limit permissions:
+nano /etc/ssh/sshd_config 
 
-  sudo adduser ipfire_reverse
-  
-• Generate SSH keys on the server if not already done:
+PermitRootLogin yes 
 
-  ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa
-  
-Step 2: Configure IPFire
+PasswordAuthentication yes 
 
-• Log into your IPFire system.
+service sshd restart 
 
-• Download the reverse shell script from this repository:
-
-  curl -O <repository_url>/reverse_shell.sh
   
 
-Step 3: Setup SSH Keys
+# Install SSH Client on Device A and Device B 
 
-• Copy the public key from your server to the IPFire system:
+apt-get update 
 
-  ssh-copy-id -i ~/.ssh/id_rsa.pub root@<ipfire_ip>
+apt-get install openssh-client 
+
   
-• Ensure the script references the correct key location.
 
-Step 4:
+# Assign Static IPs to IPFire Interfaces 
 
-  ssh ipfire_reverse@<server_ip>
+ip addr add 192.168.1.1/24 dev eth0 
+
+ip addr add 203.0.113.1/24 dev eth1 
+
+  
+
+# Enable SSH Access on IPFire 
+
+nano /etc/ssh/sshd_config 
+
+PermitRootLogin yes 
+
+PasswordAuthentication yes 
+
+service sshd restart 
+
+  
+
+# Configure Port Forwarding on IPFire 
+
+1. Access the IPFire web interface. 
+
+2. Navigate to Firewall > Port Forwarding. 
+
+3. Add a rule with: 
+
+      Source: Any 
+
+      Destination: IPFire RED IP 
+
+      Protocol: TCP 
+
+      Destination Port: 22 
+
+  
+
+ 
+
+# Add Firewall Rules on IPFire 
+
+1. Navigate to Firewall > Rules. 
+
+2. Add a rule with: 
+
+     Action: Allow 
+
+      Protocol: TCP 
+
+     Source Zone: GREEN 
+
+     Destination Zone: RED 
+
+     Port: 22 
+
+  
+
+# Establish Reverse SSH on Device A 
+
+ssh-keygen -t rsa 
+
+ssh-copy-id user@<IPFire_IP> 
+
+ssh -R 2222:localhost:22 user@<IPFire_IP> 
+
+  
+
+# Connect to Device A from Device B 
+
+ssh-keygen -t rsa 
+
+ssh-copy-id user@<IPFire_IP> 
+
+ssh -p 2222 user@<IPFire_IP> 
+
+  
+
+ 
+
+ 
